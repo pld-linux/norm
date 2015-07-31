@@ -72,22 +72,29 @@ extra; pozwalają one na wykorzystanie NORM na wyższym poziomie.
 %build
 %waf configure \
 	--prefix=%{_prefix} \
+	--libdir=%{_libdir} \
 	%{?with_java:--build-java} \
 	%{?with_python:--build-python}
 
-%waf
+%waf \
+	--verbose
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT%{_includedir}
 
 %waf install \
-	--destdir=$RPM_BUILD_ROOT
+	--destdir=$RPM_BUILD_ROOT \
+	--verbose
 
 cp -p include/*.h $RPM_BUILD_ROOT%{_includedir}
 
 %if %{with java}
 install -D build/norm.jar $RPM_BUILD_ROOT%{_javadir}/norm.jar
+%endif
+
+%if %{with python}
+%py_postclean
 %endif
 
 %clean
