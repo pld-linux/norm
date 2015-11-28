@@ -7,7 +7,7 @@ Summary:	NACK-Oriented Reliable Multicast library
 Summary(pl.UTF-8):	Biblioteka NACK-Oriented Reliable Multicast
 Name:		norm
 Version:	1.5r6
-Release:	1
+Release:	2
 License:	BSD
 Group:		Libraries
 Source0:	http://downloads.pf.itd.nrl.navy.mil/norm/src-%{name}-%{version}.tgz
