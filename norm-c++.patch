@@ -1,0 +1,11 @@
+--- norm-1.5.8/src/java/jni/normInstanceJni.cpp.orig	2018-05-03 20:16:54.000000000 +0200
++++ norm-1.5.8/src/java/jni/normInstanceJni.cpp	2019-04-12 15:49:16.266929530 +0200
+@@ -182,7 +182,7 @@
+   
+   if (env->GetArrayLength(array) <= event.type) {
+     env->ThrowNew((jclass)env->NewLocalRef(jw_IOException), "Invalid NORM event type (NormEventType.java out of sync with NORM API event header?)");
+-    return false;
++    return NULL;
+   }
+       
+   jobject type = env->GetObjectArrayElement(array, event.type);

@@ -6,13 +6,18 @@
 Summary:	NACK-Oriented Reliable Multicast library
 Summary(pl.UTF-8):	Biblioteka NACK-Oriented Reliable Multicast
 Name:		norm
-Version:	1.5r6
-Release:	2
+# upstream changed versioning scheme 1.5r6 -> 1.5.7, but rpm says thay 1.5r6 > 1.5.8
+# so let's delay switching to avoid epoch bumps until 1.6.x series
+Version:	1.5r8
+%define	fver	%(echo %{version} | tr r .)
+Release:	1
 License:	BSD
 Group:		Libraries
-Source0:	http://downloads.pf.itd.nrl.navy.mil/norm/src-%{name}-%{version}.tgz
-# Source0-md5:	e9a5c735ce4ec5b8c3597e4706c1e5a9
-URL:		http://www.nrl.navy.mil/itd/ncs/products/norm
+Source0:	https://downloads.pf.itd.nrl.navy.mil/norm/src-%{name}-%{fver}.tgz
+# Source0-md5:	6c4da91ea600643005297d8b6e8e1a04
+Patch0:		%{name}-c++.patch
+Patch1:		%{name}-link.patch
+URL:		https://www.nrl.navy.mil/itd/ncs/products/norm
 %{?with_java:BuildRequires:	jdk}
 BuildRequires:	libstdc++-devel
 %{?with_python:BuildRequires:	python-devel >= 1:2.5}
@@ -67,7 +72,9 @@ głównym pakiecie. Zawiera także kilka dodatkowych modułów w pakiecie
 extra; pozwalają one na wykorzystanie NORM na wyższym poziomie.
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{fver}
+%patch0 -p1
+%patch1 -p1
 
 %build
 %waf configure \
@@ -103,6 +110,9 @@ rm -rf $RPM_BUILD_ROOT
 %post	-p /sbin/ldconfig
 %postun	-p /sbin/ldconfig
 
+%post	-n java-norm -p /sbin/ldconfig
+%postun	-n java-norm -p /sbin/ldconfig
+
 %files
 %defattr(644,root,root,755)
 %doc LICENSE.TXT README.TXT TODO.TXT VERSION.TXT
@@ -121,6 +131,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc README-Java.txt
 %attr(755,root,root) %{_libdir}/libProtolibJni.so
+%attr(755,root,root) %{_libdir}/libmil_navy_nrl_norm.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libmil_navy_nrl_norm.so.1
 %attr(755,root,root) %{_libdir}/libmil_navy_nrl_norm.so
 %{_javadir}/norm.jar
 %endif

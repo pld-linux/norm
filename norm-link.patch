@@ -1,0 +1,11 @@
+--- norm-1.5.8/wscript.orig	2018-07-07 19:10:14.000000000 +0200
++++ norm-1.5.8/wscript	2019-04-12 18:09:25.511372745 +0200
+@@ -132,7 +132,7 @@
+     if ctx.env.BUILD_JAVA:
+         ctx.shlib(
+             target = 'mil_navy_nrl_norm',
+-            use = ['norm_shlib', 'JAVA'],
++            use = ['norm', 'JAVA'],
+ 		    vnum = VERSION,
+             source = ['src/java/jni/{0}.cpp'.format(x) for x in [
+                 'normJni',
