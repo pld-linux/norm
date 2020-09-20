@@ -13,6 +13,8 @@ Version:	1.5r8
 Release:	1
 License:	BSD
 Group:		Libraries
+#Source0Download: https://github.com/USNavalResearchLaboratory/norm/releases
+#Source0:	https://github.com/USNavalResearchLaboratory/norm/releases/download/v%{fver}/src-norm-with-protolib-%{fver}.tar.gz
 Source0:	https://downloads.pf.itd.nrl.navy.mil/norm/src-%{name}-%{fver}.tgz
 # Source0-md5:	6c4da91ea600643005297d8b6e8e1a04
 Patch0:		%{name}-c++.patch
