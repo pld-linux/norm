@@ -8,21 +8,21 @@ Summary(pl.UTF-8):	Biblioteka NACK-Oriented Reliable Multicast
 Name:		norm
 # upstream changed versioning scheme 1.5r6 -> 1.5.7, but rpm says thay 1.5r6 > 1.5.8
 # so let's delay switching to avoid epoch bumps until 1.6.x series
-Version:	1.5r8
+Version:	1.5r9
 %define	fver	%(echo %{version} | tr r .)
 Release:	1
 License:	BSD
 Group:		Libraries
 #Source0Download: https://github.com/USNavalResearchLaboratory/norm/releases
-#Source0:	https://github.com/USNavalResearchLaboratory/norm/releases/download/v%{fver}/src-norm-with-protolib-%{fver}.tar.gz
-Source0:	https://downloads.pf.itd.nrl.navy.mil/norm/src-%{name}-%{fver}.tgz
-# Source0-md5:	6c4da91ea600643005297d8b6e8e1a04
-Patch0:		%{name}-c++.patch
-Patch1:		%{name}-link.patch
+Source0:	https://github.com/USNavalResearchLaboratory/norm/releases/download/v%{fver}/src-norm-%{fver}.tgz
+# Source0-md5:	fea518e8fa7d5205d3ff455b9f224da8
 URL:		https://www.nrl.navy.mil/itd/ncs/products/norm
 %{?with_java:BuildRequires:	jdk}
 BuildRequires:	libstdc++-devel
 %{?with_python:BuildRequires:	python-devel >= 1:2.5}
+BuildRequires:	rpm-build >= 4.6
+BuildRequires:	rpmbuild(macros) >= 1.714
+BuildRequires:	sed >= 4.0
 BuildRequires:	waf
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -44,6 +44,18 @@ Header files for NORM library.
 %description devel -l pl.UTF-8
 Pliki nagłówkowe biblioteki NORM.
 
+%package static
+Summary:	Static NORM library
+Summary(pl.UTF-8):	Statyczna biblioteka NORM
+Group:		Development/Libraries
+Requires:	%{name}-devel = %{version}-%{release}
+
+%description static
+Static NORM library.
+
+%description static -l pl.UTF-8
+Statyczna biblioteka NORM.
+
 %package -n java-norm
 Summary:	Java JNI bindings for NORM
 Summary(pl.UTF-8):	Wiązania JNI Javy do biblioteki NORM
@@ -62,6 +74,7 @@ Summary:	PyNORM - Python wrapper for NORM and Extras
 Summary(pl.UTF-8):	PyNORM - interfejs Pythona do biblioteki NORM oraz dodatki
 Group:		Libraries/Python
 Requires:	%{name} = %{version}-%{release}
+BuildArch:	noarch
 
 %description -n python-pynorm
 PyNORM provides a thin wrapper around the NORM C API in the main
@@ -74,19 +87,26 @@ głównym pakiecie. Zawiera także kilka dodatkowych modułów w pakiecie
 extra; pozwalają one na wykorzystanie NORM na wyższym poziomie.
 
 %prep
-%setup -q -n %{name}-%{fver}
-%patch0 -p1
-%patch1 -p1
+# despite .tgz extension it's plain tar archive
+%setup -q -c -T
+tar xf %{SOURCE0}
+#setup -n %{name}-%{fver}
+
+# load by SONAME
+%{__sed} -i -e 's/"libnorm\.so"/"libnorm.so.1"/' src/pynorm/core.py
 
 %build
 %waf configure \
 	--prefix=%{_prefix} \
 	--libdir=%{_libdir} \
-	%{?with_java:--build-java} \
-	%{?with_python:--build-python}
+	%{?with_java:--build-java}
 
 %waf \
 	--verbose
+
+%if %{with python}
+%py_build
+%endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -96,13 +116,13 @@ install -d $RPM_BUILD_ROOT%{_includedir}
 	--destdir=$RPM_BUILD_ROOT \
 	--verbose
 
-cp -p include/*.h $RPM_BUILD_ROOT%{_includedir}
-
 %if %{with java}
-install -D build/norm.jar $RPM_BUILD_ROOT%{_javadir}/norm.jar
+install -Dp build/norm.jar $RPM_BUILD_ROOT%{_javadir}/norm.jar
 %endif
 
 %if %{with python}
+%py_install
+
 %py_postclean
 %endif
 
@@ -117,16 +137,24 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc LICENSE.TXT README.TXT TODO.TXT VERSION.TXT
+%doc LICENSE README.md TODO.TXT VERSION.TXT
 %attr(755,root,root) %{_libdir}/libnorm.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libnorm.so.1
+%attr(755,root,root) %{_libdir}/libprotokit.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libprotokit.so.3
 
 %files devel
 %defattr(644,root,root,755)
 %doc NormSocketBindingNotes.txt doc/{NormDeveloperGuide.pdf,NormUserGuide.pdf,npcUsage.pdf}
 %attr(755,root,root) %{_libdir}/libnorm.so
-%{_includedir}/galois.h
-%{_includedir}/norm*.h
+%attr(755,root,root) %{_libdir}/libprotokit.so
+%{_includedir}/normApi.h
+%{_pkgconfigdir}/norm.pc
+
+%files static
+%defattr(644,root,root,755)
+%{_libdir}/libnorm.a
+%{_libdir}/libprotokit.a
 
 %if %{with java}
 %files -n java-norm
@@ -143,6 +171,6 @@ rm -rf $RPM_BUILD_ROOT
 %files -n python-pynorm
 %defattr(644,root,root,755)
 %doc README-PyNorm.txt
-%attr(755,root,root) %{py_sitedir}/protokit.so
 %{py_sitescriptdir}/pynorm
+%{py_sitescriptdir}/pynorm-1.0-py*.egg-info
 %endif
